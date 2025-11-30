@@ -13,7 +13,7 @@
 // ==================== KONFIGURASI ====================
 const CONFIG = {
   SPREADSHEET_ID: '1g6amTnSbARWoqXaeFty2iBhBeX6i1JCbd9fLe6RN1yc',
-  DRIVE_FOLDER_ID: '10oPAztO0ksB2BRFoME9weO4M9zD4EpOj',
+  PARENT_FOLDER_ID: '10oPAztO0ksB2BRFoME9weO4M9zD4EpOj', // Folder induk untuk semua pendaftar
   SHEET_NAME: 'Pendaftaran' // Ganti jika nama sheet berbeda
 };
 
@@ -31,16 +31,20 @@ function doPost(e) {
       return createResponse(false, 'Data tidak lengkap. Mohon isi semua field yang wajib.');
     }
     
-    // Save files ke Google Drive
-    const fileUrls = saveFilesToDrive(data);
+    // Create personal folder untuk pendaftar
+    const personalFolder = createPersonalFolder(data.nama, data.nim);
     
-    // Save data ke Google Spreadsheet
-    saveToSpreadsheet(data, fileUrls);
+    // Save files ke folder personal
+    const fileUrls = saveFilesToDrive(data, personalFolder);
+    
+    // Save data ke Google Spreadsheet (dengan link folder)
+    saveToSpreadsheet(data, fileUrls, personalFolder.getUrl());
     
     // Return success response
     return createResponse(true, 'Pendaftaran berhasil! Data Anda telah tersimpan.', {
       timestamp: new Date().toISOString(),
-      files: fileUrls
+      files: fileUrls,
+      folder: personalFolder.getUrl()
     });
     
   } catch (error) {
@@ -68,35 +72,72 @@ function validateRequiredFields(data) {
 
 // ==================== FILE HANDLING ====================
 /**
- * Save files (CV, Esai, Motivation Letter) ke Google Drive
+ * Create personal folder untuk pendaftar
+ * Format: NAMA_NIM_BerkasDaftar
+ */
+function createPersonalFolder(nama, nim) {
+  try {
+    const parentFolder = DriveApp.getFolderById(CONFIG.PARENT_FOLDER_ID);
+    
+    // Bersihkan nama untuk folder name
+    const cleanName = nama.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 50);
+    const cleanNim = nim.replace(/[^0-9]/g, '');
+    
+    // Format nama folder: NAMA_NIM_BerkasDaftar
+    const folderName = `${cleanName}_${cleanNim}_BerkasDaftar`;
+    
+    // Cek apakah folder sudah ada (untuk avoid duplicate)
+    const existingFolders = parentFolder.getFoldersByName(folderName);
+    
+    if (existingFolders.hasNext()) {
+      // Jika sudah ada, tambahkan timestamp
+      const timestamp = Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyyMMdd_HHmmss');
+      const uniqueFolderName = `${folderName}_${timestamp}`;
+      const newFolder = parentFolder.createFolder(uniqueFolderName);
+      Logger.log('Personal folder created (with timestamp): ' + uniqueFolderName);
+      return newFolder;
+    } else {
+      // Buat folder baru
+      const newFolder = parentFolder.createFolder(folderName);
+      Logger.log('Personal folder created: ' + folderName);
+      return newFolder;
+    }
+    
+  } catch (error) {
+    Logger.log('Error creating personal folder: ' + error.toString());
+    throw new Error('Gagal membuat folder personal: ' + error.message);
+  }
+}
+
+/**
+ * Save files (CV, Esai, Motivation Letter) ke folder personal pendaftar
  * Returns object dengan URLs file
  */
-function saveFilesToDrive(data) {
+function saveFilesToDrive(data, personalFolder) {
   try {
-    const folder = DriveApp.getFolderById(CONFIG.DRIVE_FOLDER_ID);
     const timestamp = Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyyMMdd_HHmmss');
     
-    // Bersihkan nama untuk filename (hapus karakter spesial)
+    // Bersihkan nama untuk filename
     const cleanName = data.nama.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 50);
     const cleanNim = data.nim.replace(/[^0-9]/g, '');
     
     // Save CV
     const cvFile = saveBase64File(
-      folder,
+      personalFolder,
       data.file_cv,
       `${cleanName}_${cleanNim}_CV_${timestamp}.pdf`
     );
     
     // Save Esai
     const esaiFile = saveBase64File(
-      folder,
+      personalFolder,
       data.file_esai,
       `${cleanName}_${cleanNim}_Esai_${timestamp}.pdf`
     );
     
     // Save Motivation Letter
     const motletFile = saveBase64File(
-      folder,
+      personalFolder,
       data.file_motlet,
       `${cleanName}_${cleanNim}_MotLet_${timestamp}.pdf`
     );
@@ -146,7 +187,7 @@ function saveBase64File(folder, base64Data, filename) {
 /**
  * Save data pendaftaran ke Google Spreadsheet
  */
-function saveToSpreadsheet(data, fileUrls) {
+function saveToSpreadsheet(data, fileUrls, folderUrl) {
   try {
     const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
     let sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
@@ -167,7 +208,8 @@ function saveToSpreadsheet(data, fileUrls) {
         'Motivasi',
         'Link CV',
         'Link Esai',
-        'Link Motivation Letter'
+        'Link Motivation Letter',
+        'Folder Pendaftar'
       ];
       
       sheet.appendRow(headers);
@@ -201,7 +243,8 @@ function saveToSpreadsheet(data, fileUrls) {
       data.motivasi,
       fileUrls.cv,
       fileUrls.esai,
-      fileUrls.motlet
+      fileUrls.motlet,
+      folderUrl
     ];
     
     // Append data
@@ -216,12 +259,18 @@ function saveToSpreadsheet(data, fileUrls) {
       dataRange.setBackground('#f3f4f6');
     }
     
-    // Make links clickable and blue
+    // Make file links clickable and blue
     for (let i = 9; i <= 11; i++) {
       const cell = sheet.getRange(lastRow, i);
       cell.setFontColor('#2563eb');
       cell.setFontUnderline(true);
     }
+    
+    // Make folder link clickable and green
+    const folderCell = sheet.getRange(lastRow, 12);
+    folderCell.setFontColor('#059669'); // Green
+    folderCell.setFontUnderline(true);
+    folderCell.setFontWeight('bold');
     
     Logger.log('Data saved to spreadsheet. Row: ' + lastRow);
     
@@ -282,8 +331,8 @@ function testDoPost() {
  */
 function testFileOperations() {
   try {
-    const folder = DriveApp.getFolderById(CONFIG.DRIVE_FOLDER_ID);
-    Logger.log('✅ Folder accessible: ' + folder.getName());
+    const folder = DriveApp.getFolderById(CONFIG.PARENT_FOLDER_ID);
+    Logger.log('✅ Parent Folder accessible: ' + folder.getName());
     
     const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
     Logger.log('✅ Spreadsheet accessible: ' + ss.getName());

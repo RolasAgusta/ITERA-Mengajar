@@ -1,8 +1,7 @@
 // Form Pendaftaran Volunteer - Component-Based Architecture
 
 // ==================== CONFIGURATION ====================
-// TODO: Ganti dengan URL Web App setelah deploy Google Apps Script
-const SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTyKKMjqVJIXaq6DfKOIxdHEJwObjnKBSyZFs8miKnWCV47u1rpfjeVfyPOc1y6JMR/exec';
 
 // ==================== CONSTANTS ====================
 const PRODI_LIST = [
@@ -169,7 +168,7 @@ const RegistrationComponent = {
                                 name="angkatan"
                                 maxlength="4"
                                 class="w-full px-4 py-3 border-2 border-purple-200 rounded-lg text-gray-900 bg-white hover:border-purple-600 focus:border-purple-600 focus:outline-none transition-colors duration-200 ease-in-out"
-                                placeholder="Contoh: 2022"
+                                placeholder="Contoh: 2023"
                             >
                             <p id="angkatan-error" class="text-red-600 text-sm mt-1 hidden">Angkatan wajib diisi</p>
                         </div>

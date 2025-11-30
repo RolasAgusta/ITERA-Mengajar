@@ -153,6 +153,31 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXXXXXXXXXXXXXXXXXX
 | I | Link CV | URL | https://drive.google.com/file/d/... |
 | J | Link Esai | URL | https://drive.google.com/file/d/... |
 | K | Link Motivation Letter | URL | https://drive.google.com/file/d/... |
+| L | Folder Pendaftar | URL | https://drive.google.com/drive/folders/... |
+
+---
+
+## 📁 Struktur Folder Google Drive
+
+```
+📁 PARENT_FOLDER (ID: 10oPAztO0ksB2BRFoME9weO4M9zD4EpOj)
+├── 📁 Rolas_123130018_BerkasDaftar
+│   ├── 📄 Rolas_123130018_CV_20251130_143025.pdf
+│   ├── 📄 Rolas_123130018_Esai_20251130_143025.pdf
+│   └── 📄 Rolas_123130018_MotLet_20251130_143025.pdf
+├── 📁 John_Doe_987654_BerkasDaftar
+│   ├── 📄 John_Doe_987654_CV_20251130_150000.pdf
+│   ├── 📄 John_Doe_987654_Esai_20251130_150000.pdf
+│   └── 📄 John_Doe_987654_MotLet_20251130_150000.pdf
+└── ...
+```
+
+**Keuntungan:**
+- ✅ File terorganisir per pendaftar
+- ✅ Mudah mencari file berdasarkan nama/NIM
+- ✅ Folder clickable dari Spreadsheet (kolom L)
+- ✅ Tidak ada file tercampur
+- ✅ Bisa download semua file pendaftar sekaligus (download folder)
 
 ---
 
@@ -196,12 +221,15 @@ Jika ada masalah:
 
 ✅ Auto-save data ke Spreadsheet  
 ✅ Auto-upload PDF ke Drive  
+✅ **Auto-create folder personal per pendaftar**  
+✅ **Folder naming: NAMA_NIM_BerkasDaftar**  
 ✅ Auto-create clickable links  
 ✅ Timestamp otomatis  
 ✅ File naming dengan Nama + NIM  
 ✅ Alternate row colors  
 ✅ Header formatting  
 ✅ File sharing permissions  
+✅ **Folder link di Spreadsheet (kolom L - warna hijau)**  
 
 ---
 

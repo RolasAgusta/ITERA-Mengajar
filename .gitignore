@@ -22,3 +22,4 @@ tailwindcss-windows-x64.exe
 # Environment variables
 .env
 .env.local
+.backup
