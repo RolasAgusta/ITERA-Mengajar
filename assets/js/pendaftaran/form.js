@@ -221,7 +221,7 @@ const RegistrationComponent = {
                                     <p class="text-gray-600 mb-1">Klik untuk upload CV</p>
                                     <p class="text-sm text-gray-400">Format: PDF (Max 5MB)</p>
                                     <input type="file" id="cv-file" name="cv" accept=".pdf" class="hidden">
-                                    <p id="cv-filename" class="text-sm text-green-600 font-medium mt-2 hidden"></p>
+                                    <p id="cv-filename" class="text-sm text-green-600 font-medium mt-2 hidden truncate block max-w-xs mx-auto"></p>
                                 </div>
                                 <p id="cv-error" class="text-red-600 text-sm mt-1 hidden">CV wajib diupload (format PDF)</p>
                             </div>
@@ -236,7 +236,7 @@ const RegistrationComponent = {
                                     <p class="text-gray-600 mb-1">Klik untuk upload Esai</p>
                                     <p class="text-sm text-gray-400">Format: PDF (Max 5MB)</p>
                                     <input type="file" id="esai-file" name="esai" accept=".pdf" class="hidden">
-                                    <p id="esai-filename" class="text-sm text-green-600 font-medium mt-2 hidden"></p>
+                                    <p id="esai-filename" class="text-sm text-green-600 font-medium mt-2 hidden truncate block max-w-xs mx-auto"></p>
                                 </div>
                                 <p id="esai-error" class="text-red-600 text-sm mt-1 hidden">Esai wajib diupload (format PDF)</p>
                             </div>
@@ -251,7 +251,7 @@ const RegistrationComponent = {
                                     <p class="text-gray-600 mb-1">Klik untuk upload Motivation Letter</p>
                                     <p class="text-sm text-gray-400">Format: PDF (Max 5MB)</p>
                                     <input type="file" id="motlet-file" name="motivationLetter" accept=".pdf" class="hidden">
-                                    <p id="motlet-filename" class="text-sm text-green-600 font-medium mt-2 hidden"></p>
+                                    <p id="motlet-filename" class="text-sm text-green-600 font-medium mt-2 hidden truncate block max-w-xs mx-auto"></p>
                                 </div>
                                 <p id="motlet-error" class="text-red-600 text-sm mt-1 hidden">Motivation Letter wajib diupload (format PDF)</p>
                             </div>
@@ -266,7 +266,7 @@ const RegistrationComponent = {
                                     <p class="text-gray-600 mb-1">Klik untuk upload Transkrip Nilai</p>
                                     <p class="text-sm text-gray-400">Format: PDF (Max 5MB)</p>
                                     <input type="file" id="transkrip-file" name="transkrip" accept=".pdf" class="hidden">
-                                    <p id="transkrip-filename" class="text-sm text-green-600 font-medium mt-2 hidden"></p>
+                                    <p id="transkrip-filename" class="text-sm text-green-600 font-medium mt-2 hidden truncate block max-w-xs mx-auto"></p>
                                 </div>
                                 <p id="transkrip-error" class="text-red-600 text-sm mt-1 hidden">Transkrip Nilai wajib diupload (format PDF)</p>
                             </div>
@@ -281,7 +281,7 @@ const RegistrationComponent = {
                                     <p class="text-gray-600 mb-1">Klik untuk upload Surat Pernyataan</p>
                                     <p class="text-sm text-gray-400">Format: PDF (Max 5MB)</p>
                                     <input type="file" id="pernyataan-file" name="pernyataan" accept=".pdf" class="hidden">
-                                    <p id="pernyataan-filename" class="text-sm text-green-600 font-medium mt-2 hidden"></p>
+                                    <p id="pernyataan-filename" class="text-sm text-green-600 font-medium mt-2 hidden truncate block max-w-xs mx-auto"></p>
                                 </div>
                                 <p id="pernyataan-error" class="text-red-600 text-sm mt-1 hidden">Surat Pernyataan wajib diupload (format PDF)</p>
                             </div>
@@ -299,8 +299,8 @@ const RegistrationComponent = {
                             </button>
                             
                             <!-- Progress Bar -->
-                            <div id="progressContainer" class="hidden w-full bg-gray-200 rounded-full h-4 mt-4">
-                                <div id="progressBar" class="bg-purple-600 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            <div id="progressContainer" class="hidden w-full bg-gray-200 rounded-full h-4 mt-4 overflow-hidden">
+                                <div id="progressBar" class="progress-bar-animated bg-purple-600 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
                             </div>
                             
                             <!-- Warning Note -->
@@ -354,6 +354,9 @@ const RegistrationComponent = {
 
     // Initialize component
     init: function() {
+        // Inject CSS animations first (before anything else)
+        this.injectStyles();
+
         const container = document.getElementById('registration-container');
         if (!container) {
             console.error('❌ Container #registration-container not found!');
@@ -456,6 +459,142 @@ const RegistrationComponent = {
         );
     },
 
+    // ==================== HELPER FUNCTIONS ====================
+    /**
+     * Inject CSS animations directly into <head>
+     * Ensures animated stripes are available regardless of external CSS loading
+     */
+    injectStyles: function() {
+        // Check if styles already injected
+        if (document.getElementById('progress-bar-styles')) {
+            console.log('⚠️ Progress bar styles already injected');
+            return;
+        }
+
+        const styleElement = document.createElement('style');
+        styleElement.id = 'progress-bar-styles';
+        styleElement.textContent = `
+            /* Progress Bar Animated Stripes - Injected via JS */
+            @keyframes moveStripes {
+                0% { 
+                    background-position: 0 0; 
+                }
+                100% { 
+                    background-position: 1rem 0; 
+                }
+            }
+
+            .progress-bar-striped {
+                background-image: linear-gradient(
+                    45deg,
+                    rgba(255, 255, 255, 0.2) 25%,
+                    transparent 25%,
+                    transparent 50%,
+                    rgba(255, 255, 255, 0.2) 50%,
+                    rgba(255, 255, 255, 0.2) 75%,
+                    transparent 75%,
+                    transparent
+                );
+                background-size: 1rem 1rem;
+            }
+
+            .progress-bar-animated {
+                animation: moveStripes 1s linear infinite;
+            }
+
+            .bg-purple-600 {
+                background-color: #7c3aed !important;
+            }
+        `;
+
+        document.head.appendChild(styleElement);
+        console.log('✅ Progress bar animated styles injected into <head>');
+    },
+
+    /**
+     * Smart filename truncation untuk nama file panjang
+     * Memotong di tengah dan menjaga ekstensi file tetap terlihat
+     */
+    formatFilename: function(filename) {
+        const MAX_LENGTH = 25;
+        
+        if (filename.length <= MAX_LENGTH) {
+            return filename;
+        }
+
+        // Ambil 15 karakter pertama + "..." + 7 karakter terakhir
+        const start = filename.substring(0, 15);
+        const end = filename.substring(filename.length - 7);
+        
+        return `${start}...${end}`;
+    },
+
+    /**
+     * Centralized loading state management
+     * Mengatur semua UI elements terkait loading (button, progress bar, note)
+     */
+    setLoadingState: function(isLoading) {
+        if (isLoading) {
+            // Disable button dengan loading text
+            this.state.submitBtn.disabled = true;
+            this.state.submitBtn.innerHTML = 'Mohon tunggu<span class="loading-dots"></span>';
+
+            // NUCLEAR APPROACH: Force visibility dengan hardcoded inline styles
+            console.log('🔥 NUCLEAR: Forcing progress bar with inline styles...');
+            
+            // Force Container Visibility (bypass Tailwind)
+            this.state.progressContainer.classList.remove('hidden');
+            this.state.progressContainer.style.display = 'block';
+            this.state.progressContainer.style.width = '100%';
+            this.state.progressContainer.style.height = '20px';
+            this.state.progressContainer.style.backgroundColor = '#e5e7eb'; // gray-200
+            this.state.progressContainer.style.borderRadius = '9999px'; // rounded-full
+            this.state.progressContainer.style.marginTop = '16px';
+            this.state.progressContainer.style.overflow = 'hidden';
+            
+            // Force Progress Bar Visibility
+            this.state.progressBar.style.display = 'block';
+            this.state.progressBar.style.height = '100%';
+            this.state.progressBar.style.width = '0%';
+            this.state.progressBar.style.borderRadius = '9999px';
+            this.state.progressBar.style.transition = 'width 0.3s ease';
+            
+            // Add animated stripes classes (DO NOT set backgroundColor inline to allow gradient)
+            this.state.progressBar.classList.add('bg-purple-600');
+            this.state.progressBar.classList.add('progress-bar-striped');
+            this.state.progressBar.classList.add('progress-bar-animated');
+            
+            console.log('🎬 Animated stripes classes applied:', {
+                hasBgPurple: this.state.progressBar.classList.contains('bg-purple-600'),
+                hasStriped: this.state.progressBar.classList.contains('progress-bar-striped'),
+                hasAnimated: this.state.progressBar.classList.contains('progress-bar-animated')
+            });
+            
+            // Force Upload Note Visibility
+            this.state.uploadNote.classList.remove('hidden');
+            this.state.uploadNote.style.display = 'block';
+            this.state.uploadNote.style.color = '#ef4444'; // red-500
+            this.state.uploadNote.style.fontSize = '14px';
+            this.state.uploadNote.style.textAlign = 'center';
+            this.state.uploadNote.style.marginTop = '8px';
+            this.state.uploadNote.style.fontStyle = 'italic';
+
+            console.log('✅ Loading state: ACTIVE (Hardcoded styles applied)');
+        } else {
+            // Hide progress bar dan note
+            this.state.progressContainer.classList.add('hidden');
+            this.state.progressContainer.style.display = 'none';
+            
+            this.state.uploadNote.classList.add('hidden');
+            this.state.uploadNote.style.display = 'none';
+
+            // Reset button text (tanpa enable, biarkan disabled untuk reset form)
+            this.state.submitBtn.innerHTML = 'Kirim Pendaftaran';
+
+            console.log('✅ Loading state: INACTIVE');
+        }
+    },
+
     // ==================== FILE UPLOAD LOGIC ====================
     setupFileUploads: function() {
         const self = this;
@@ -495,7 +634,7 @@ const RegistrationComponent = {
                 }
 
                 // Success
-                filenameEl.innerHTML = `<i class="fas fa-check-circle mr-1"></i> ${file.name}`;
+                filenameEl.innerHTML = `<i class="fas fa-check-circle mr-1"></i> ${self.formatFilename(file.name)}`;
                 filenameEl.classList.remove('hidden');
                 errorEl.classList.add('hidden');
                 uploadArea.classList.add('has-file');
@@ -649,25 +788,22 @@ const RegistrationComponent = {
 
             console.log('✅ Progress elements verified');
 
-            // Show loading state with animated dots
-            self.state.submitBtn.disabled = true;
-            self.state.submitBtn.innerHTML = 'Mohon tunggu<span class="loading-dots"></span>';
+            // Activate loading state (centralized)
+            self.setLoadingState(true);
 
-            // ENFORCE VISIBILITY: Nuclear approach to show progress UI
-            console.log('👁️ Forcing progress bar visibility...');
-            
-            // Remove hidden class
-            self.state.progressContainer.classList.remove('hidden');
-            self.state.uploadNote.classList.remove('hidden');
-            
-            // Force display with inline styles (override any CSS)
-            self.state.progressContainer.style.display = 'block';
-            self.state.uploadNote.style.display = 'block';
-            
-            // Reset progress bar width
-            self.state.progressBar.style.width = '0%';
-
-            console.log('✅ Progress UI should now be visible');
+            // Debug: Verify elements are visible
+            console.log('📊 Progress Container Computed Styles:', {
+                display: window.getComputedStyle(self.state.progressContainer).display,
+                height: window.getComputedStyle(self.state.progressContainer).height,
+                backgroundColor: window.getComputedStyle(self.state.progressContainer).backgroundColor,
+                visibility: window.getComputedStyle(self.state.progressContainer).visibility
+            });
+            console.log('📊 Progress Bar Computed Styles:', {
+                display: window.getComputedStyle(self.state.progressBar).display,
+                height: window.getComputedStyle(self.state.progressBar).height,
+                width: window.getComputedStyle(self.state.progressBar).width,
+                backgroundColor: window.getComputedStyle(self.state.progressBar).backgroundColor
+            });
 
             // Simulate progress (increment to max 90%)
             let progress = 0;
@@ -743,11 +879,8 @@ const RegistrationComponent = {
                 // Wait a moment before showing success
                 await new Promise(resolve => setTimeout(resolve, 500));
 
-                // Hide progress bar and note
-                self.state.progressContainer.classList.add('hidden');
-                self.state.uploadNote.classList.add('hidden');
-                self.state.progressContainer.style.display = 'none';
-                self.state.uploadNote.style.display = 'none';
+                // Deactivate loading state (centralized)
+                self.setLoadingState(false);
 
                 console.log('✅ Submission complete, showing success modal');
 
@@ -772,11 +905,8 @@ const RegistrationComponent = {
                 // Stop progress simulation
                 clearInterval(progressInterval);
 
-                // Hide progress bar and note
-                self.state.progressContainer.classList.add('hidden');
-                self.state.uploadNote.classList.add('hidden');
-                self.state.progressContainer.style.display = 'none';
-                self.state.uploadNote.style.display = 'none';
+                // Deactivate loading state (centralized)
+                self.setLoadingState(false);
 
                 console.error('❌ Submission error:', error);
                 alert('❌ Gagal mengirim data!\n\n' +
@@ -785,9 +915,6 @@ const RegistrationComponent = {
                 
                 // Re-enable submit button
                 self.state.submitBtn.disabled = false;
-            } finally {
-                // Remove loading state
-                self.state.submitBtn.innerHTML = 'Kirim Pendaftaran';
             }
         });
     },
