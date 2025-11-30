@@ -1,7 +1,7 @@
 // Form Pendaftaran Volunteer - Component-Based Architecture
 
 // ==================== CONFIGURATION ====================
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9yFKPuK7tLfzSBEAelMt3n6PKMLmJBdY4SHLNj0FtxQ00cLrvvBk9wWPg_iW55IFl/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbydKAK3BeOlPA658DkD8X3Seqzs4Ok8cbF9zSyimlxM8s1gqHnU8RkLRfm0z8gIrds/exec';
 
 // ==================== CONSTANTS ====================
 const PRODI_LIST = [
@@ -57,7 +57,10 @@ const RegistrationComponent = {
         prodiInput: null,
         prodiDropdown: null,
         form: null,
-        submitBtn: null
+        submitBtn: null,
+        progressContainer: null,
+        progressBar: null,
+        uploadNote: null
     },
 
     // Render HTML template
@@ -294,6 +297,17 @@ const RegistrationComponent = {
                             >
                                 Kirim Pendaftaran
                             </button>
+                            
+                            <!-- Progress Bar -->
+                            <div id="progressContainer" class="hidden w-full bg-gray-200 rounded-full h-4 mt-4">
+                                <div id="progressBar" class="bg-purple-600 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                            
+                            <!-- Warning Note -->
+                            <p id="uploadNote" class="hidden text-sm text-red-500 text-center mt-2 italic">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                Mohon JANGAN tutup atau refresh halaman ini. Sedang mengunggah berkas (estimasi 15-30 detik)...
+                            </p>
                         </div>
                     </form>
                 </div>
@@ -349,11 +363,22 @@ const RegistrationComponent = {
         // Inject HTML
         container.innerHTML = this.render();
 
-        // Cache DOM elements
+        // Cache DOM elements (including progress bar elements)
         this.state.prodiInput = document.getElementById('prodi');
         this.state.prodiDropdown = document.getElementById('prodi-dropdown');
         this.state.form = document.getElementById('registrationForm');
         this.state.submitBtn = document.getElementById('submitBtn');
+        this.state.progressContainer = document.getElementById('progressContainer');
+        this.state.progressBar = document.getElementById('progressBar');
+        this.state.uploadNote = document.getElementById('uploadNote');
+
+        // Debug: Verify progress elements are cached
+        console.log('✅ Registration Component initialized');
+        console.log('📋 Progress Elements Found:', {
+            progressContainer: this.state.progressContainer,
+            progressBar: this.state.progressBar,
+            uploadNote: this.state.uploadNote
+        });
 
         // Setup all event listeners
         this.setupAutocomplete();
@@ -362,7 +387,6 @@ const RegistrationComponent = {
         this.setupFormSubmission();
         this.setupNumericInputs();
 
-        console.log('✅ Registration Component initialized');
         console.log(`📋 ${PRODI_LIST.length} program studi available`);
     },
 
@@ -608,15 +632,52 @@ const RegistrationComponent = {
         this.state.form.addEventListener('submit', async function(e) {
             e.preventDefault();
 
+            console.log('🚀 Starting submission...');
+
             // Final validation
             if (!self.validateAllFields()) {
                 alert('⚠️ Mohon lengkapi semua field yang wajib diisi!');
                 return;
             }
 
+            // Verify progress elements exist
+            if (!self.state.progressContainer || !self.state.progressBar || !self.state.uploadNote) {
+                console.error('❌ Progress elements not found in state!');
+                alert('Error: UI elements tidak ditemukan. Mohon refresh halaman.');
+                return;
+            }
+
+            console.log('✅ Progress elements verified');
+
             // Show loading state with animated dots
             self.state.submitBtn.disabled = true;
             self.state.submitBtn.innerHTML = 'Mohon tunggu<span class="loading-dots"></span>';
+
+            // ENFORCE VISIBILITY: Nuclear approach to show progress UI
+            console.log('👁️ Forcing progress bar visibility...');
+            
+            // Remove hidden class
+            self.state.progressContainer.classList.remove('hidden');
+            self.state.uploadNote.classList.remove('hidden');
+            
+            // Force display with inline styles (override any CSS)
+            self.state.progressContainer.style.display = 'block';
+            self.state.uploadNote.style.display = 'block';
+            
+            // Reset progress bar width
+            self.state.progressBar.style.width = '0%';
+
+            console.log('✅ Progress UI should now be visible');
+
+            // Simulate progress (increment to max 90%)
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                if (progress < 90) {
+                    progress += 5;
+                    self.state.progressBar.style.width = progress + '%';
+                    console.log(`📊 Progress: ${progress}%`);
+                }
+            }, 500);
 
             try {
                 // Get form data
@@ -629,6 +690,8 @@ const RegistrationComponent = {
                 const transkripFile = formData.get('transkrip');
                 const pernyataanFile = formData.get('pernyataan');
 
+                console.log('📄 Converting files to Base64...');
+
                 // Convert files in parallel
                 const [cvBase64, esaiBase64, motletBase64, transkripBase64, pernyataanBase64] = await Promise.all([
                     self.fileToBase64(cvFile),
@@ -637,6 +700,8 @@ const RegistrationComponent = {
                     self.fileToBase64(transkripFile),
                     self.fileToBase64(pernyataanFile)
                 ]);
+
+                console.log('✅ Files converted successfully');
 
                 // Prepare payload
                 const payload = {
@@ -654,6 +719,8 @@ const RegistrationComponent = {
                     file_pernyataan: pernyataanBase64
                 };
 
+                console.log('📤 Sending to Google Apps Script...');
+
                 // Send to Google Apps Script
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
@@ -664,10 +731,27 @@ const RegistrationComponent = {
                     body: JSON.stringify(payload)
                 });
 
-                // Note: no-cors mode tidak bisa read response
-                // Anggap sukses jika tidak ada error
-                
-                // Show success modal instead of alert
+                console.log('✅ Data sent successfully');
+
+                // Stop progress simulation
+                clearInterval(progressInterval);
+
+                // Complete progress to 100%
+                self.state.progressBar.style.width = '100%';
+                console.log('📊 Progress: 100% (Complete)');
+
+                // Wait a moment before showing success
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Hide progress bar and note
+                self.state.progressContainer.classList.add('hidden');
+                self.state.uploadNote.classList.add('hidden');
+                self.state.progressContainer.style.display = 'none';
+                self.state.uploadNote.style.display = 'none';
+
+                console.log('✅ Submission complete, showing success modal');
+
+                // Show success modal
                 self.showSuccessModal();
 
                 // Reset form
@@ -685,10 +769,22 @@ const RegistrationComponent = {
                 self.state.submitBtn.disabled = true;
                 
             } catch (error) {
-                console.error('Submission error:', error);
+                // Stop progress simulation
+                clearInterval(progressInterval);
+
+                // Hide progress bar and note
+                self.state.progressContainer.classList.add('hidden');
+                self.state.uploadNote.classList.add('hidden');
+                self.state.progressContainer.style.display = 'none';
+                self.state.uploadNote.style.display = 'none';
+
+                console.error('❌ Submission error:', error);
                 alert('❌ Gagal mengirim data!\n\n' +
                       'Error: ' + error.message + '\n\n' +
                       'Mohon coba lagi atau hubungi admin jika masalah berlanjut.');
+                
+                // Re-enable submit button
+                self.state.submitBtn.disabled = false;
             } finally {
                 // Remove loading state
                 self.state.submitBtn.innerHTML = 'Kirim Pendaftaran';
