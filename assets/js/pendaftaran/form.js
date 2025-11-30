@@ -294,6 +294,17 @@ const RegistrationComponent = {
                             >
                                 Kirim Pendaftaran
                             </button>
+                            
+                            <!-- Progress Bar -->
+                            <div id="progressContainer" class="hidden w-full bg-gray-200 rounded-full h-4 mt-4">
+                                <div id="progressBar" class="bg-purple-600 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                            
+                            <!-- Warning Note -->
+                            <p id="uploadNote" class="hidden text-sm text-red-500 text-center mt-2 italic">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                Mohon JANGAN tutup atau refresh halaman ini. Sedang mengunggah berkas (estimasi 15-30 detik)...
+                            </p>
                         </div>
                     </form>
                 </div>
@@ -614,9 +625,28 @@ const RegistrationComponent = {
                 return;
             }
 
+            // Get progress bar elements
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const uploadNote = document.getElementById('uploadNote');
+
             // Show loading state with animated dots
             self.state.submitBtn.disabled = true;
             self.state.submitBtn.innerHTML = 'Mohon tunggu<span class="loading-dots"></span>';
+
+            // Show progress bar and warning note
+            progressContainer.classList.remove('hidden');
+            uploadNote.classList.remove('hidden');
+            progressBar.style.width = '0%';
+
+            // Simulate progress (increment to max 90%)
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                if (progress < 90) {
+                    progress += 5;
+                    progressBar.style.width = progress + '%';
+                }
+            }, 500);
 
             try {
                 // Get form data
@@ -664,10 +694,20 @@ const RegistrationComponent = {
                     body: JSON.stringify(payload)
                 });
 
-                // Note: no-cors mode tidak bisa read response
-                // Anggap sukses jika tidak ada error
-                
-                // Show success modal instead of alert
+                // Stop progress simulation
+                clearInterval(progressInterval);
+
+                // Complete progress to 100%
+                progressBar.style.width = '100%';
+
+                // Wait a moment before showing success
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Hide progress bar and note
+                progressContainer.classList.add('hidden');
+                uploadNote.classList.add('hidden');
+
+                // Show success modal
                 self.showSuccessModal();
 
                 // Reset form
@@ -685,10 +725,20 @@ const RegistrationComponent = {
                 self.state.submitBtn.disabled = true;
                 
             } catch (error) {
+                // Stop progress simulation
+                clearInterval(progressInterval);
+
+                // Hide progress bar and note
+                progressContainer.classList.add('hidden');
+                uploadNote.classList.add('hidden');
+
                 console.error('Submission error:', error);
                 alert('❌ Gagal mengirim data!\n\n' +
                       'Error: ' + error.message + '\n\n' +
                       'Mohon coba lagi atau hubungi admin jika masalah berlanjut.');
+                
+                // Re-enable submit button
+                self.state.submitBtn.disabled = false;
             } finally {
                 // Remove loading state
                 self.state.submitBtn.innerHTML = 'Kirim Pendaftaran';
