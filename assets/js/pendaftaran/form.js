@@ -268,6 +268,43 @@ const RegistrationComponent = {
                     </form>
                 </div>
             </div>
+
+            <!-- Success Modal -->
+            <div id="successModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center animate-modal-appear">
+                    
+                    <!-- Animated Checkmark Icon -->
+                    <div class="mb-6 flex justify-center">
+                        <div class="relative">
+                            <svg class="checkmark-circle" width="80" height="80" viewBox="0 0 52 52">
+                                <circle class="checkmark-circle-bg" cx="26" cy="26" r="25" fill="none"/>
+                                <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Success Text -->
+                    <h2 class="text-2xl font-bold text-gray-800 mb-3">
+                        Pendaftaran Berhasil!
+                    </h2>
+                    
+                    <p class="text-gray-600 mb-2 leading-relaxed">
+                        Berkas Anda telah diterima, mohon tunggu informasi lebih lanjut.
+                    </p>
+                    
+                    <p class="text-purple-600 font-semibold text-lg mb-8">
+                        Semangat Mengabdi, Membangun Negeri!
+                    </p>
+
+                    <!-- Action Button -->
+                    <button 
+                        id="modalCloseBtn"
+                        class="w-full bg-purple-600 text-white font-semibold py-4 rounded-lg transform transition-all duration-200 ease-in-out hover:bg-purple-700 hover:shadow-lg active:scale-95 active:bg-purple-800 focus:outline-none cursor-pointer"
+                    >
+                        Kembali ke Beranda
+                    </button>
+                </div>
+            </div>
         `;
     },
 
@@ -582,17 +619,8 @@ const RegistrationComponent = {
                 // Note: no-cors mode tidak bisa read response
                 // Anggap sukses jika tidak ada error
                 
-                // Success message
-                alert('✅ Pendaftaran berhasil dikirim!\n\n' +
-                      `Nama: ${payload.nama}\n` +
-                      `Email: ${payload.email}\n` +
-                      `NIM: ${payload.nim}\n` +
-                      `Program Studi: ${payload.prodi}\n` +
-                      `Angkatan: ${payload.angkatan}\n` +
-                      `WhatsApp: ${payload.whatsapp}\n\n` +
-                      'Data Anda telah tersimpan di Google Spreadsheet dan file PDF telah diupload ke Google Drive.\n\n' +
-                      'Terima kasih telah mendaftar sebagai volunteer ITERA Mengajar. ' +
-                      'Tim kami akan segera menghubungi Anda.');
+                // Show success modal instead of alert
+                self.showSuccessModal();
 
                 // Reset form
                 self.state.form.reset();
@@ -640,6 +668,32 @@ const RegistrationComponent = {
             
             reader.readAsDataURL(file);
         });
+    },
+
+    // ==================== SUCCESS MODAL ====================
+    /**
+     * Show custom success modal
+     */
+    showSuccessModal: function() {
+        const modal = document.getElementById('successModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            
+            // Setup close button handler
+            const closeBtn = document.getElementById('modalCloseBtn');
+            if (closeBtn) {
+                closeBtn.onclick = function() {
+                    window.location.href = 'index.html';
+                };
+            }
+            
+            // Close on overlay click
+            modal.onclick = function(e) {
+                if (e.target === modal) {
+                    window.location.href = 'index.html';
+                }
+            };
+        }
     }
 };
 
