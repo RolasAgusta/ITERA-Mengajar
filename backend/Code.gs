@@ -26,19 +26,35 @@ function doPost(e) {
     // Parse request body
     const data = JSON.parse(e.postData.contents);
     
+    Logger.log('=== START PROCESSING ===');
+    Logger.log('Received data for: ' + data.nama + ' (NIM: ' + data.nim + ')');
+    
     // Validasi data wajib
     if (!validateRequiredFields(data)) {
+      Logger.log('❌ Validation failed: Missing required fields');
       return createResponse(false, 'Data tidak lengkap. Mohon isi semua field yang wajib.');
     }
     
-    // Create personal folder untuk pendaftar
-    const personalFolder = createPersonalFolder(data.nama, data.nim);
+    Logger.log('✅ Validation passed');
+    
+    // CRITICAL: Get parent folder explicitly
+    const PARENT_ID = '10oPAztO0ksB2BRFoME9weO4M9zD4EpOj';
+    var parentFolder = DriveApp.getFolderById(PARENT_ID);
+    Logger.log('📁 Parent folder found: ' + parentFolder.getName());
+    
+    // Create personal folder INSIDE parent folder (NOT in root)
+    const personalFolder = createPersonalFolderInside(parentFolder, data.nama, data.nim);
+    Logger.log('✅ Personal folder created: ' + personalFolder.getUrl());
     
     // Save files ke folder personal
-    const fileUrls = saveFilesToDrive(data, personalFolder);
+    const fileUrls = saveFilesToPersonalFolder(data, personalFolder);
+    Logger.log('✅ Files saved successfully');
     
     // Save data ke Google Spreadsheet (dengan link folder)
     saveToSpreadsheet(data, fileUrls, personalFolder.getUrl());
+    Logger.log('✅ Data saved to spreadsheet');
+    
+    Logger.log('=== PROCESS COMPLETED SUCCESSFULLY ===');
     
     // Return success response
     return createResponse(true, 'Pendaftaran berhasil! Data Anda telah tersimpan.', {
@@ -48,7 +64,8 @@ function doPost(e) {
     });
     
   } catch (error) {
-    Logger.log('Error in doPost: ' + error.toString());
+    Logger.log('❌ ERROR in doPost: ' + error.toString());
+    Logger.log('Error stack: ' + error.stack);
     return createResponse(false, 'Terjadi kesalahan: ' + error.message);
   }
 }
@@ -72,49 +89,63 @@ function validateRequiredFields(data) {
 
 // ==================== FILE HANDLING ====================
 /**
- * Create personal folder untuk pendaftar
- * Format: NAMA_NIM_BerkasDaftar
+ * FIXED: Create personal folder INSIDE parent folder (NOT in Drive root)
+ * Format: NAMA_NIM_Berkas
  */
-function createPersonalFolder(nama, nim) {
+function createPersonalFolderInside(parentFolder, nama, nim) {
   try {
-    const parentFolder = DriveApp.getFolderById(CONFIG.PARENT_FOLDER_ID);
+    Logger.log('Creating personal folder inside: ' + parentFolder.getName());
     
     // Bersihkan nama untuk folder name
     const cleanName = nama.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 50);
     const cleanNim = nim.replace(/[^0-9]/g, '');
     
-    // Format nama folder: NAMA_NIM_BerkasDaftar
-    const folderName = `${cleanName}_${cleanNim}_BerkasDaftar`;
+    // Format nama folder: NAMA_NIM_Berkas
+    const folderName = cleanName + '_' + cleanNim + '_Berkas';
+    Logger.log('Folder name will be: ' + folderName);
     
     // Cek apakah folder sudah ada (untuk avoid duplicate)
     const existingFolders = parentFolder.getFoldersByName(folderName);
     
     if (existingFolders.hasNext()) {
+      Logger.log('⚠️ Folder already exists, creating with timestamp');
       // Jika sudah ada, tambahkan timestamp
       const timestamp = Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyyMMdd_HHmmss');
-      const uniqueFolderName = `${folderName}_${timestamp}`;
-      const newFolder = parentFolder.createFolder(uniqueFolderName);
-      Logger.log('Personal folder created (with timestamp): ' + uniqueFolderName);
+      const uniqueFolderName = folderName + '_' + timestamp;
+      
+      // CRITICAL: Use parentFolder.createFolder() NOT DriveApp.createFolder()
+      var newFolder = parentFolder.createFolder(uniqueFolderName);
+      Logger.log('✅ Folder created (with timestamp): ' + newFolder.getName());
+      Logger.log('📍 Folder URL: ' + newFolder.getUrl());
+      Logger.log('📍 Folder ID: ' + newFolder.getId());
+      
       return newFolder;
     } else {
-      // Buat folder baru
-      const newFolder = parentFolder.createFolder(folderName);
-      Logger.log('Personal folder created: ' + folderName);
+      Logger.log('Creating new folder...');
+      
+      // CRITICAL: Use parentFolder.createFolder() NOT DriveApp.createFolder()
+      var newFolder = parentFolder.createFolder(folderName);
+      Logger.log('✅ Folder created: ' + newFolder.getName());
+      Logger.log('📍 Folder URL: ' + newFolder.getUrl());
+      Logger.log('📍 Folder ID: ' + newFolder.getId());
+      
       return newFolder;
     }
     
   } catch (error) {
-    Logger.log('Error creating personal folder: ' + error.toString());
+    Logger.log('❌ Error creating personal folder: ' + error.toString());
     throw new Error('Gagal membuat folder personal: ' + error.message);
   }
 }
 
 /**
- * Save files (CV, Esai, Motivation Letter) ke folder personal pendaftar
+ * Save files (CV, Esai, Motivation Letter) to personal folder
  * Returns object dengan URLs file
  */
-function saveFilesToDrive(data, personalFolder) {
+function saveFilesToPersonalFolder(data, personalFolder) {
   try {
+    Logger.log('Saving files to folder: ' + personalFolder.getName());
+    
     const timestamp = Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyyMMdd_HHmmss');
     
     // Bersihkan nama untuk filename
@@ -122,30 +153,38 @@ function saveFilesToDrive(data, personalFolder) {
     const cleanNim = data.nim.replace(/[^0-9]/g, '');
     
     // Save CV
-    const cvFile = saveBase64File(
+    Logger.log('Saving CV...');
+    const cvFile = saveBase64FileToFolder(
       personalFolder,
       data.file_cv,
-      `${cleanName}_${cleanNim}_CV_${timestamp}.pdf`
+      cleanName + '_' + cleanNim + '_CV_' + timestamp + '.pdf'
     );
+    Logger.log('✅ CV saved: ' + cvFile.getName());
     
     // Save Esai
-    const esaiFile = saveBase64File(
+    Logger.log('Saving Esai...');
+    const esaiFile = saveBase64FileToFolder(
       personalFolder,
       data.file_esai,
-      `${cleanName}_${cleanNim}_Esai_${timestamp}.pdf`
+      cleanName + '_' + cleanNim + '_Esai_' + timestamp + '.pdf'
     );
+    Logger.log('✅ Esai saved: ' + esaiFile.getName());
     
     // Save Motivation Letter
-    const motletFile = saveBase64File(
+    Logger.log('Saving Motivation Letter...');
+    const motletFile = saveBase64FileToFolder(
       personalFolder,
       data.file_motlet,
-      `${cleanName}_${cleanNim}_MotLet_${timestamp}.pdf`
+      cleanName + '_' + cleanNim + '_MotLet_' + timestamp + '.pdf'
     );
+    Logger.log('✅ MotLet saved: ' + motletFile.getName());
     
     // Set sharing permissions (Anyone with link can view)
     cvFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
     esaiFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
     motletFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    
+    Logger.log('✅ All files shared successfully');
     
     return {
       cv: cvFile.getUrl(),
@@ -154,15 +193,15 @@ function saveFilesToDrive(data, personalFolder) {
     };
     
   } catch (error) {
-    Logger.log('Error saving files: ' + error.toString());
+    Logger.log('❌ Error saving files: ' + error.toString());
     throw new Error('Gagal menyimpan file ke Drive: ' + error.message);
   }
 }
 
 /**
- * Decode Base64 dan save sebagai file PDF
+ * Decode Base64 dan save sebagai file PDF to specific folder
  */
-function saveBase64File(folder, base64Data, filename) {
+function saveBase64FileToFolder(folder, base64Data, filename) {
   try {
     // Decode Base64 string to bytes
     const bytes = Utilities.base64Decode(base64Data);
@@ -170,15 +209,15 @@ function saveBase64File(folder, base64Data, filename) {
     // Create blob
     const blob = Utilities.newBlob(bytes, 'application/pdf', filename);
     
-    // Save to folder
+    // CRITICAL: Save to specific folder using folder.createFile()
     const file = folder.createFile(blob);
     
-    Logger.log('File saved: ' + filename + ' (ID: ' + file.getId() + ')');
+    Logger.log('📄 File saved: ' + filename + ' (ID: ' + file.getId() + ')');
     
     return file;
     
   } catch (error) {
-    Logger.log('Error in saveBase64File for ' + filename + ': ' + error.toString());
+    Logger.log('❌ Error in saveBase64FileToFolder for ' + filename + ': ' + error.toString());
     throw new Error('Gagal decode/save file: ' + filename);
   }
 }
