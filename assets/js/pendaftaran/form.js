@@ -292,7 +292,7 @@ const RegistrationComponent = {
                             <button 
                                 type="submit" 
                                 id="submitBtn"
-                                class="w-full bg-purple-600 text-white font-semibold py-4 rounded-lg transform transition-all duration-200 ease-in-out hover:bg-purple-700 hover:shadow-lg active:scale-95 active:bg-purple-800 focus:outline-none disabled:bg-gray-300 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
+                                class="w-full font-semibold py-4 rounded-lg transition-all duration-200 ease-in-out focus:outline-none btn-disabled-custom"
                                 disabled
                             >
                                 Kirim Pendaftaran
@@ -389,6 +389,9 @@ const RegistrationComponent = {
         this.setupValidation();
         this.setupFormSubmission();
         this.setupNumericInputs();
+
+        // Initial button state check (ensure gray box on page load)
+        this.checkFormValidity();
 
         console.log(`📋 ${PRODI_LIST.length} program studi available`);
     },
@@ -504,6 +507,19 @@ const RegistrationComponent = {
 
             .bg-purple-600 {
                 background-color: #7c3aed !important;
+            }
+
+            /* Custom Disabled Button Style - Guaranteed Visibility */
+            .btn-disabled-custom {
+                background-color: #d1d5db !important; /* Gray 300 */
+                color: #6b7280 !important; /* Gray 500 */
+                cursor: not-allowed !important;
+                transform: none !important;
+                box-shadow: none !important;
+            }
+            
+            .btn-disabled-custom:hover {
+                background-color: #9ca3af !important; /* Gray 400 - Hover Effect */
             }
         `;
 
@@ -711,10 +727,23 @@ const RegistrationComponent = {
         const transkripFile = document.getElementById('transkrip-file').files[0];
         const pernyataanFile = document.getElementById('pernyataan-file').files[0];
 
+        // Logic Validasi
         const isValid = nama && email && nim && prodi && angkatan && whatsapp && motivasi && 
                         cvFile && esaiFile && motletFile && transkripFile && pernyataanFile;
 
+        // Set Property Disabled (Logic HTML)
         this.state.submitBtn.disabled = !isValid;
+
+        // Set Visual Style (Logic CSS) - HARDCODED with injected custom class
+        if (isValid) {
+            // STATE: SIAP KIRIM (Ungu, Kursor Tangan, Efek Tekan)
+            this.state.submitBtn.className = "w-full bg-purple-600 text-white font-semibold py-4 rounded-lg cursor-pointer hover:bg-purple-700 hover:shadow-lg active:scale-95 active:bg-purple-800 transition-all duration-200 ease-in-out focus:outline-none transform";
+            console.log('✅ Button Visual: PURPLE (Active)');
+        } else {
+            // STATE: BELUM LENGKAP (Custom injected class - guaranteed visible)
+            this.state.submitBtn.className = "w-full font-semibold py-4 rounded-lg transition-all duration-200 ease-in-out focus:outline-none btn-disabled-custom";
+            console.log('⛔ Button Visual: CUSTOM GRAY BOX (Disabled - Injected CSS)');
+        }
     },
 
     validateAllFields: function() {
