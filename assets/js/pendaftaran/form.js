@@ -1,7 +1,7 @@
 // Form Pendaftaran Volunteer - Component-Based Architecture
 
 // ==================== CONFIGURATION ====================
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9yFKPuK7tLfzSBEAelMt3n6PKMLmJBdY4SHLNj0FtxQ00cLrvvBk9wWPg_iW55IFl/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbydKAK3BeOlPA658DkD8X3Seqzs4Ok8cbF9zSyimlxM8s1gqHnU8RkLRfm0z8gIrds/exec';
 
 // ==================== CONSTANTS ====================
 const PRODI_LIST = [
