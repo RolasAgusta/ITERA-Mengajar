@@ -292,7 +292,7 @@ const RegistrationComponent = {
                             <button 
                                 type="submit" 
                                 id="submitBtn"
-                                class="w-full bg-gray-300 text-white font-semibold py-4 rounded-lg cursor-not-allowed transition-all duration-200 ease-in-out focus:outline-none"
+                                class="w-full font-semibold py-4 rounded-lg transition-all duration-200 ease-in-out focus:outline-none btn-disabled-custom"
                                 disabled
                             >
                                 Kirim Pendaftaran
@@ -389,6 +389,9 @@ const RegistrationComponent = {
         this.setupValidation();
         this.setupFormSubmission();
         this.setupNumericInputs();
+
+        // Initial button state check (ensure gray box on page load)
+        this.checkFormValidity();
 
         console.log(`📋 ${PRODI_LIST.length} program studi available`);
     },
@@ -504,6 +507,19 @@ const RegistrationComponent = {
 
             .bg-purple-600 {
                 background-color: #7c3aed !important;
+            }
+
+            /* Custom Disabled Button Style - Guaranteed Visibility */
+            .btn-disabled-custom {
+                background-color: #d1d5db !important; /* Gray 300 */
+                color: #6b7280 !important; /* Gray 500 */
+                cursor: not-allowed !important;
+                transform: none !important;
+                box-shadow: none !important;
+            }
+            
+            .btn-disabled-custom:hover {
+                background-color: #9ca3af !important; /* Gray 400 - Hover Effect */
             }
         `;
 
@@ -711,39 +727,22 @@ const RegistrationComponent = {
         const transkripFile = document.getElementById('transkrip-file').files[0];
         const pernyataanFile = document.getElementById('pernyataan-file').files[0];
 
+        // Logic Validasi
         const isValid = nama && email && nim && prodi && angkatan && whatsapp && motivasi && 
                         cvFile && esaiFile && motletFile && transkripFile && pernyataanFile;
 
-        // Update button disabled state
+        // Set Property Disabled (Logic HTML)
         this.state.submitBtn.disabled = !isValid;
 
-        // Dynamic styling: Swap classes based on validity
+        // Set Visual Style (Logic CSS) - HARDCODED with injected custom class
         if (isValid) {
-            // VALID STATE: Purple, Active, Interactive
-            this.state.submitBtn.classList.remove('bg-gray-300', 'cursor-not-allowed');
-            this.state.submitBtn.classList.add(
-                'bg-purple-600',
-                'hover:bg-purple-700',
-                'hover:shadow-lg',
-                'active:scale-95',
-                'active:bg-purple-800',
-                'cursor-pointer',
-                'transform'
-            );
-            console.log('✅ Submit button: ACTIVE (Purple)');
+            // STATE: SIAP KIRIM (Ungu, Kursor Tangan, Efek Tekan)
+            this.state.submitBtn.className = "w-full bg-purple-600 text-white font-semibold py-4 rounded-lg cursor-pointer hover:bg-purple-700 hover:shadow-lg active:scale-95 active:bg-purple-800 transition-all duration-200 ease-in-out focus:outline-none transform";
+            console.log('✅ Button Visual: PURPLE (Active)');
         } else {
-            // INVALID STATE: Gray, Disabled, No interaction
-            this.state.submitBtn.classList.remove(
-                'bg-purple-600',
-                'hover:bg-purple-700',
-                'hover:shadow-lg',
-                'active:scale-95',
-                'active:bg-purple-800',
-                'cursor-pointer',
-                'transform'
-            );
-            this.state.submitBtn.classList.add('bg-gray-300', 'cursor-not-allowed');
-            console.log('⚠️ Submit button: DISABLED (Gray)');
+            // STATE: BELUM LENGKAP (Custom injected class - guaranteed visible)
+            this.state.submitBtn.className = "w-full font-semibold py-4 rounded-lg transition-all duration-200 ease-in-out focus:outline-none btn-disabled-custom";
+            console.log('⛔ Button Visual: CUSTOM GRAY BOX (Disabled - Injected CSS)');
         }
     },
 
