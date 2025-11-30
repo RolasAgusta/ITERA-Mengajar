@@ -292,7 +292,7 @@ const RegistrationComponent = {
                             <button 
                                 type="submit" 
                                 id="submitBtn"
-                                class="w-full bg-purple-600 text-white font-semibold py-4 rounded-lg transform transition-all duration-200 ease-in-out hover:bg-purple-700 hover:shadow-lg active:scale-95 active:bg-purple-800 focus:outline-none disabled:bg-gray-300 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
+                                class="w-full bg-gray-300 text-white font-semibold py-4 rounded-lg cursor-not-allowed transition-all duration-200 ease-in-out focus:outline-none"
                                 disabled
                             >
                                 Kirim Pendaftaran
@@ -714,7 +714,37 @@ const RegistrationComponent = {
         const isValid = nama && email && nim && prodi && angkatan && whatsapp && motivasi && 
                         cvFile && esaiFile && motletFile && transkripFile && pernyataanFile;
 
+        // Update button disabled state
         this.state.submitBtn.disabled = !isValid;
+
+        // Dynamic styling: Swap classes based on validity
+        if (isValid) {
+            // VALID STATE: Purple, Active, Interactive
+            this.state.submitBtn.classList.remove('bg-gray-300', 'cursor-not-allowed');
+            this.state.submitBtn.classList.add(
+                'bg-purple-600',
+                'hover:bg-purple-700',
+                'hover:shadow-lg',
+                'active:scale-95',
+                'active:bg-purple-800',
+                'cursor-pointer',
+                'transform'
+            );
+            console.log('✅ Submit button: ACTIVE (Purple)');
+        } else {
+            // INVALID STATE: Gray, Disabled, No interaction
+            this.state.submitBtn.classList.remove(
+                'bg-purple-600',
+                'hover:bg-purple-700',
+                'hover:shadow-lg',
+                'active:scale-95',
+                'active:bg-purple-800',
+                'cursor-pointer',
+                'transform'
+            );
+            this.state.submitBtn.classList.add('bg-gray-300', 'cursor-not-allowed');
+            console.log('⚠️ Submit button: DISABLED (Gray)');
+        }
     },
 
     validateAllFields: function() {
