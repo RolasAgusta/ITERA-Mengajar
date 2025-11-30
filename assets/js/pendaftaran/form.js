@@ -1,5 +1,9 @@
 // Form Pendaftaran Volunteer - Component-Based Architecture
 
+// ==================== CONFIGURATION ====================
+// TODO: Ganti dengan URL Web App setelah deploy Google Apps Script
+const SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
+
 // ==================== CONSTANTS ====================
 const PRODI_LIST = [
     "Arsitektur",
@@ -523,7 +527,7 @@ const RegistrationComponent = {
     setupFormSubmission: function() {
         const self = this;
 
-        this.state.form.addEventListener('submit', function(e) {
+        this.state.form.addEventListener('submit', async function(e) {
             e.preventDefault();
 
             // Final validation
@@ -532,43 +536,112 @@ const RegistrationComponent = {
                 return;
             }
 
-            // Get form data
-            const formData = new FormData(self.state.form);
-            const data = {
-                nama: formData.get('nama'),
-                email: formData.get('email'),
-                nim: formData.get('nim'),
-                prodi: formData.get('prodi'),
-                angkatan: formData.get('angkatan'),
-                whatsapp: formData.get('whatsapp'),
-                motivasi: formData.get('motivasi'),
-                cv: formData.get('cv').name,
-                esai: formData.get('esai').name,
-                motivationLetter: formData.get('motivationLetter').name
-            };
-
             // Show loading state
             self.state.submitBtn.disabled = true;
             self.state.submitBtn.classList.add('btn-loading');
             self.state.submitBtn.textContent = 'Mengirim...';
 
-            // Simulate API call (replace with actual API endpoint)
-            setTimeout(() => {
+            try {
+                // Get form data
+                const formData = new FormData(self.state.form);
+                
+                // Convert files to Base64
+                const cvFile = formData.get('cv');
+                const esaiFile = formData.get('esai');
+                const motletFile = formData.get('motivationLetter');
+
+                // Convert files in parallel
+                const [cvBase64, esaiBase64, motletBase64] = await Promise.all([
+                    self.fileToBase64(cvFile),
+                    self.fileToBase64(esaiFile),
+                    self.fileToBase64(motletFile)
+                ]);
+
+                // Prepare payload
+                const payload = {
+                    nama: formData.get('nama'),
+                    email: formData.get('email'),
+                    nim: formData.get('nim'),
+                    prodi: formData.get('prodi'),
+                    angkatan: formData.get('angkatan'),
+                    whatsapp: formData.get('whatsapp'),
+                    motivasi: formData.get('motivasi'),
+                    file_cv: cvBase64,
+                    file_esai: esaiBase64,
+                    file_motlet: motletBase64
+                };
+
+                // Send to Google Apps Script
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Required for Google Apps Script
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                // Note: no-cors mode tidak bisa read response
+                // Anggap sukses jika tidak ada error
+                
                 // Success message
-                alert('✅ Pendaftaran berhasil dikirim!\n\nData Anda:\n' +
-                      `Nama: ${data.nama}\n` +
-                      `Email: ${data.email}\n` +
-                      `NIM: ${data.nim}\n` +
-                      `Program Studi: ${data.prodi}\n` +
-                      `Angkatan: ${data.angkatan}\n` +
-                      `WhatsApp: ${data.whatsapp}\n\n` +
+                alert('✅ Pendaftaran berhasil dikirim!\n\n' +
+                      `Nama: ${payload.nama}\n` +
+                      `Email: ${payload.email}\n` +
+                      `NIM: ${payload.nim}\n` +
+                      `Program Studi: ${payload.prodi}\n` +
+                      `Angkatan: ${payload.angkatan}\n` +
+                      `WhatsApp: ${payload.whatsapp}\n\n` +
+                      'Data Anda telah tersimpan di Google Spreadsheet dan file PDF telah diupload ke Google Drive.\n\n' +
                       'Terima kasih telah mendaftar sebagai volunteer ITERA Mengajar. ' +
                       'Tim kami akan segera menghubungi Anda.');
 
+                // Reset form
+                self.state.form.reset();
+                
+                // Reset file upload UI
+                document.querySelectorAll('.file-upload-area').forEach(area => {
+                    area.classList.remove('has-file');
+                });
+                document.querySelectorAll('[id$="-filename"]').forEach(el => {
+                    el.classList.add('hidden');
+                });
+
+                // Reset submit button state
+                self.state.submitBtn.disabled = true;
+                
+            } catch (error) {
+                console.error('Submission error:', error);
+                alert('❌ Gagal mengirim data!\n\n' +
+                      'Error: ' + error.message + '\n\n' +
+                      'Mohon coba lagi atau hubungi admin jika masalah berlanjut.');
+            } finally {
                 // Remove loading state
                 self.state.submitBtn.classList.remove('btn-loading');
                 self.state.submitBtn.textContent = 'Kirim Pendaftaran';
-            }, 1500);
+            }
+        });
+    },
+
+    // ==================== FILE TO BASE64 ====================
+    /**
+     * Convert file to clean Base64 string (without data URI prefix)
+     */
+    fileToBase64: function(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                // Get base64 string and remove prefix (data:application/pdf;base64,)
+                const base64 = e.target.result.split(',')[1];
+                resolve(base64);
+            };
+            
+            reader.onerror = function(error) {
+                reject(error);
+            };
+            
+            reader.readAsDataURL(file);
         });
     }
 };
