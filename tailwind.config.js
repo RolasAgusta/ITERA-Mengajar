@@ -2,6 +2,7 @@
 module.exports = {
   content: [
     "./index.html",
+    "./pendaftaran.html",
     "./assets/js/**/*.js",
   ],
   theme: {
