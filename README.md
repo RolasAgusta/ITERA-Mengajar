@@ -134,8 +134,8 @@ Contributions, issues, and feature requests are welcome!
 ## 📧 Contact
 
 - **Instagram**: [@iteramengajar](https://instagram.com/iteramengajar)
-- **Email**: iteramengajar@gmail.com
-- **Phone**: +62 812-3456-7890
+- **Email**: oaiteramengajar@gmail.com
+- **Phone**: +62 896 2994 4399
 - **Address**: Jl. Terusan Ryacudu, Way Huwi, Kec. Jati Agung, Lampung Selatan
 
 ## 📝 License
