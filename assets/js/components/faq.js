@@ -3,8 +3,8 @@ const FAQComponent = {
     faqs: [
         {
             id: 1,
-            question: 'Apa syarat menjadi relawan ITERA Mengajar?',
-            answer: 'Syarat menjadi relawan ITERA Mengajar adalah mahasiswa aktif ITERA, memiliki komitmen tinggi untuk mengajar, dan bersedia mengikuti seleksi serta sekolah yang diadakan. Tidak ada batasan jurusan, semua mahasiswa bisa bergabung.'
+            question: 'Apa syarat menjadi volunteer ITERA Mengajar?',
+            answer: 'Syarat menjadi volunteer ITERA Mengajar adalah mahasiswa aktif ITERA, memiliki komitmen tinggi untuk mengajar, dan bersedia mengikuti seleksi serta sekolah yang diadakan. Tidak ada batasan jurusan, semua mahasiswa bisa bergabung.'
         },
         {
             id: 2,
