@@ -103,7 +103,31 @@ textarea:focus {
     }
 }
 
-/* Submit Button Loading State */
+/* Submit Button Loading State - Animated Dots */
+.loading-dots::after {
+    content: '';
+    display: inline-block;
+    width: 1em;
+    text-align: left;
+    animation: loadingDots 1.5s steps(4, end) infinite;
+}
+
+@keyframes loadingDots {
+    0%, 20% {
+        content: '';
+    }
+    40% {
+        content: '.';
+    }
+    60% {
+        content: '..';
+    }
+    80%, 100% {
+        content: '...';
+    }
+}
+
+/* Legacy Spinner (Keep for compatibility but not used) */
 .btn-loading {
     position: relative;
     pointer-events: none;
@@ -129,3 +153,4 @@ textarea:focus {
         transform: rotate(360deg);
     }
 }
+

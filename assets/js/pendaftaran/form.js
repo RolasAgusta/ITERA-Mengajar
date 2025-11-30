@@ -1,7 +1,7 @@
 // Form Pendaftaran Volunteer - Component-Based Architecture
 
 // ==================== CONFIGURATION ====================
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwfjLgJgjXbrf-wgcicqyhu6MbcVt54qB8rxZAKHlbFE-xxZIWE40c3a79k2pkTyGUH/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzSz5iBtdZ3loa7RfMiP_3pbESm4dkCglEpUrbvivrY0NO7fddAxuYgpAOt8NXrrsZ9/exec';
 
 // ==================== CONSTANTS ====================
 const PRODI_LIST = [
@@ -259,7 +259,7 @@ const RegistrationComponent = {
                             <button 
                                 type="submit" 
                                 id="submitBtn"
-                                class="w-full bg-purple-600 text-white font-semibold py-4 rounded-lg transform transition-all duration-200 ease-in-out hover:bg-purple-700 hover:shadow-lg active:scale-95 active:bg-purple-800 focus:outline-none disabled:bg-gray-300 disabled:cursor-not-allowed disabled:transform-none"
+                                class="w-full bg-purple-600 text-white font-semibold py-4 rounded-lg transform transition-all duration-200 ease-in-out hover:bg-purple-700 hover:shadow-lg active:scale-95 active:bg-purple-800 focus:outline-none disabled:bg-gray-300 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
                                 disabled
                             >
                                 Kirim Pendaftaran
@@ -535,10 +535,9 @@ const RegistrationComponent = {
                 return;
             }
 
-            // Show loading state
+            // Show loading state with animated dots
             self.state.submitBtn.disabled = true;
-            self.state.submitBtn.classList.add('btn-loading');
-            self.state.submitBtn.textContent = 'Mengirim...';
+            self.state.submitBtn.innerHTML = 'Mohon tunggu<span class="loading-dots"></span>';
 
             try {
                 // Get form data
@@ -616,8 +615,7 @@ const RegistrationComponent = {
                       'Mohon coba lagi atau hubungi admin jika masalah berlanjut.');
             } finally {
                 // Remove loading state
-                self.state.submitBtn.classList.remove('btn-loading');
-                self.state.submitBtn.textContent = 'Kirim Pendaftaran';
+                self.state.submitBtn.innerHTML = 'Kirim Pendaftaran';
             }
         });
     },
