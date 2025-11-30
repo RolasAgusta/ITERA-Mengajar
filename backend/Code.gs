@@ -75,7 +75,7 @@ function doPost(e) {
  * Validasi field yang wajib diisi
  */
 function validateRequiredFields(data) {
-  const required = ['nama', 'email', 'nim', 'prodi', 'angkatan', 'whatsapp', 'motivasi', 'file_cv', 'file_esai', 'file_motlet'];
+  const required = ['nama', 'email', 'nim', 'prodi', 'angkatan', 'whatsapp', 'motivasi', 'file_cv', 'file_esai', 'file_motlet', 'file_transkrip', 'file_pernyataan'];
   
   for (let field of required) {
     if (!data[field] || data[field].toString().trim() === '') {
@@ -139,7 +139,7 @@ function createPersonalFolderInside(parentFolder, nama, nim) {
 }
 
 /**
- * Save files (CV, Esai, Motivation Letter) to personal folder
+ * Save files (CV, Esai, Motivation Letter, Transkrip, Pernyataan) to personal folder
  * Returns object dengan URLs file
  */
 function saveFilesToPersonalFolder(data, personalFolder) {
@@ -179,17 +179,39 @@ function saveFilesToPersonalFolder(data, personalFolder) {
     );
     Logger.log('✅ MotLet saved: ' + motletFile.getName());
     
+    // Save Transkrip Nilai
+    Logger.log('Saving Transkrip Nilai...');
+    const transkripFile = saveBase64FileToFolder(
+      personalFolder,
+      data.file_transkrip,
+      cleanName + '_' + cleanNim + '_Transkrip_' + timestamp + '.pdf'
+    );
+    Logger.log('✅ Transkrip saved: ' + transkripFile.getName());
+    
+    // Save Surat Pernyataan
+    Logger.log('Saving Surat Pernyataan...');
+    const pernyataanFile = saveBase64FileToFolder(
+      personalFolder,
+      data.file_pernyataan,
+      cleanName + '_' + cleanNim + '_Pernyataan_' + timestamp + '.pdf'
+    );
+    Logger.log('✅ Surat Pernyataan saved: ' + pernyataanFile.getName());
+    
     // Set sharing permissions (Anyone with link can view)
     cvFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
     esaiFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
     motletFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    transkripFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    pernyataanFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
     
     Logger.log('✅ All files shared successfully');
     
     return {
       cv: cvFile.getUrl(),
       esai: esaiFile.getUrl(),
-      motlet: motletFile.getUrl()
+      motlet: motletFile.getUrl(),
+      transkrip: transkripFile.getUrl(),
+      pernyataan: pernyataanFile.getUrl()
     };
     
   } catch (error) {
@@ -248,6 +270,8 @@ function saveToSpreadsheet(data, fileUrls, folderUrl) {
         'Link CV',
         'Link Esai',
         'Link Motivation Letter',
+        'Link Transkrip',
+        'Link Surat Pernyataan',
         'Folder Pendaftar'
       ];
       
@@ -283,6 +307,8 @@ function saveToSpreadsheet(data, fileUrls, folderUrl) {
       fileUrls.cv,
       fileUrls.esai,
       fileUrls.motlet,
+      fileUrls.transkrip,
+      fileUrls.pernyataan,
       folderUrl
     ];
     
@@ -299,14 +325,14 @@ function saveToSpreadsheet(data, fileUrls, folderUrl) {
     }
     
     // Make file links clickable and blue
-    for (let i = 9; i <= 11; i++) {
+    for (let i = 9; i <= 13; i++) {
       const cell = sheet.getRange(lastRow, i);
       cell.setFontColor('#2563eb');
       cell.setFontUnderline(true);
     }
     
     // Make folder link clickable and green
-    const folderCell = sheet.getRange(lastRow, 12);
+    const folderCell = sheet.getRange(lastRow, 14);
     folderCell.setFontColor('#059669'); // Green
     folderCell.setFontUnderline(true);
     folderCell.setFontWeight('bold');

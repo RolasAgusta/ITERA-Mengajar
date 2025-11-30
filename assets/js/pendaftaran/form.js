@@ -252,6 +252,36 @@ const RegistrationComponent = {
                                 </div>
                                 <p id="motlet-error" class="text-red-600 text-sm mt-1 hidden">Motivation Letter wajib diupload (format PDF)</p>
                             </div>
+
+                            <!-- Transkrip Nilai Upload -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    Transkrip Nilai <span class="text-red-600">*</span>
+                                </label>
+                                <div class="file-upload-area border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer" data-file-input="transkrip-file">
+                                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
+                                    <p class="text-gray-600 mb-1">Klik untuk upload Transkrip Nilai</p>
+                                    <p class="text-sm text-gray-400">Format: PDF (Max 5MB)</p>
+                                    <input type="file" id="transkrip-file" name="transkrip" accept=".pdf" class="hidden">
+                                    <p id="transkrip-filename" class="text-sm text-green-600 font-medium mt-2 hidden"></p>
+                                </div>
+                                <p id="transkrip-error" class="text-red-600 text-sm mt-1 hidden">Transkrip Nilai wajib diupload (format PDF)</p>
+                            </div>
+
+                            <!-- Surat Pernyataan Upload -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    Surat Pernyataan <span class="text-red-600">*</span>
+                                </label>
+                                <div class="file-upload-area border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer" data-file-input="pernyataan-file">
+                                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
+                                    <p class="text-gray-600 mb-1">Klik untuk upload Surat Pernyataan</p>
+                                    <p class="text-sm text-gray-400">Format: PDF (Max 5MB)</p>
+                                    <input type="file" id="pernyataan-file" name="pernyataan" accept=".pdf" class="hidden">
+                                    <p id="pernyataan-filename" class="text-sm text-green-600 font-medium mt-2 hidden"></p>
+                                </div>
+                                <p id="pernyataan-error" class="text-red-600 text-sm mt-1 hidden">Surat Pernyataan wajib diupload (format PDF)</p>
+                            </div>
                         </div>
 
                         <!-- Submit Button -->
@@ -270,7 +300,7 @@ const RegistrationComponent = {
             </div>
 
             <!-- Success Modal -->
-            <div id="successModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div id="successModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                 <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center animate-modal-appear">
                     
                     <!-- Animated Checkmark Icon -->
@@ -408,7 +438,9 @@ const RegistrationComponent = {
         const fileInputs = [
             { input: 'cv-file', filename: 'cv-filename', error: 'cv-error' },
             { input: 'esai-file', filename: 'esai-filename', error: 'esai-error' },
-            { input: 'motlet-file', filename: 'motlet-filename', error: 'motlet-error' }
+            { input: 'motlet-file', filename: 'motlet-filename', error: 'motlet-error' },
+            { input: 'transkrip-file', filename: 'transkrip-filename', error: 'transkrip-error' },
+            { input: 'pernyataan-file', filename: 'pernyataan-filename', error: 'pernyataan-error' }
         ];
 
         fileInputs.forEach(({input, filename, error}) => {
@@ -513,9 +545,11 @@ const RegistrationComponent = {
         const cvFile = document.getElementById('cv-file').files[0];
         const esaiFile = document.getElementById('esai-file').files[0];
         const motletFile = document.getElementById('motlet-file').files[0];
+        const transkripFile = document.getElementById('transkrip-file').files[0];
+        const pernyataanFile = document.getElementById('pernyataan-file').files[0];
 
         const isValid = nama && email && nim && prodi && angkatan && whatsapp && motivasi && 
-                        cvFile && esaiFile && motletFile;
+                        cvFile && esaiFile && motletFile && transkripFile && pernyataanFile;
 
         this.state.submitBtn.disabled = !isValid;
     },
@@ -542,6 +576,14 @@ const RegistrationComponent = {
         }
         if (!document.getElementById('motlet-file').files[0]) {
             document.getElementById('motlet-error').classList.remove('hidden');
+            isValid = false;
+        }
+        if (!document.getElementById('transkrip-file').files[0]) {
+            document.getElementById('transkrip-error').classList.remove('hidden');
+            isValid = false;
+        }
+        if (!document.getElementById('pernyataan-file').files[0]) {
+            document.getElementById('pernyataan-error').classList.remove('hidden');
             isValid = false;
         }
 
@@ -584,12 +626,16 @@ const RegistrationComponent = {
                 const cvFile = formData.get('cv');
                 const esaiFile = formData.get('esai');
                 const motletFile = formData.get('motivationLetter');
+                const transkripFile = formData.get('transkrip');
+                const pernyataanFile = formData.get('pernyataan');
 
                 // Convert files in parallel
-                const [cvBase64, esaiBase64, motletBase64] = await Promise.all([
+                const [cvBase64, esaiBase64, motletBase64, transkripBase64, pernyataanBase64] = await Promise.all([
                     self.fileToBase64(cvFile),
                     self.fileToBase64(esaiFile),
-                    self.fileToBase64(motletFile)
+                    self.fileToBase64(motletFile),
+                    self.fileToBase64(transkripFile),
+                    self.fileToBase64(pernyataanFile)
                 ]);
 
                 // Prepare payload
@@ -603,7 +649,9 @@ const RegistrationComponent = {
                     motivasi: formData.get('motivasi'),
                     file_cv: cvBase64,
                     file_esai: esaiBase64,
-                    file_motlet: motletBase64
+                    file_motlet: motletBase64,
+                    file_transkrip: transkripBase64,
+                    file_pernyataan: pernyataanBase64
                 };
 
                 // Send to Google Apps Script
