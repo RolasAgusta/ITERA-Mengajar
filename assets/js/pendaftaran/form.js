@@ -354,6 +354,9 @@ const RegistrationComponent = {
 
     // Initialize component
     init: function() {
+        // Inject CSS animations first (before anything else)
+        this.injectStyles();
+
         const container = document.getElementById('registration-container');
         if (!container) {
             console.error('❌ Container #registration-container not found!');
@@ -458,6 +461,57 @@ const RegistrationComponent = {
 
     // ==================== HELPER FUNCTIONS ====================
     /**
+     * Inject CSS animations directly into <head>
+     * Ensures animated stripes are available regardless of external CSS loading
+     */
+    injectStyles: function() {
+        // Check if styles already injected
+        if (document.getElementById('progress-bar-styles')) {
+            console.log('⚠️ Progress bar styles already injected');
+            return;
+        }
+
+        const styleElement = document.createElement('style');
+        styleElement.id = 'progress-bar-styles';
+        styleElement.textContent = `
+            /* Progress Bar Animated Stripes - Injected via JS */
+            @keyframes moveStripes {
+                0% { 
+                    background-position: 0 0; 
+                }
+                100% { 
+                    background-position: 1rem 0; 
+                }
+            }
+
+            .progress-bar-striped {
+                background-image: linear-gradient(
+                    45deg,
+                    rgba(255, 255, 255, 0.2) 25%,
+                    transparent 25%,
+                    transparent 50%,
+                    rgba(255, 255, 255, 0.2) 50%,
+                    rgba(255, 255, 255, 0.2) 75%,
+                    transparent 75%,
+                    transparent
+                );
+                background-size: 1rem 1rem;
+            }
+
+            .progress-bar-animated {
+                animation: moveStripes 1s linear infinite;
+            }
+
+            .bg-purple-600 {
+                background-color: #7c3aed !important;
+            }
+        `;
+
+        document.head.appendChild(styleElement);
+        console.log('✅ Progress bar animated styles injected into <head>');
+    },
+
+    /**
      * Smart filename truncation untuk nama file panjang
      * Memotong di tengah dan menjaga ekstensi file tetap terlihat
      */
@@ -502,12 +556,19 @@ const RegistrationComponent = {
             this.state.progressBar.style.display = 'block';
             this.state.progressBar.style.height = '100%';
             this.state.progressBar.style.width = '0%';
-            this.state.progressBar.style.backgroundColor = '#7c3aed'; // purple-600
             this.state.progressBar.style.borderRadius = '9999px';
             this.state.progressBar.style.transition = 'width 0.3s ease';
             
-            // Add animated stripes class
+            // Add animated stripes classes (DO NOT set backgroundColor inline to allow gradient)
+            this.state.progressBar.classList.add('bg-purple-600');
+            this.state.progressBar.classList.add('progress-bar-striped');
             this.state.progressBar.classList.add('progress-bar-animated');
+            
+            console.log('🎬 Animated stripes classes applied:', {
+                hasBgPurple: this.state.progressBar.classList.contains('bg-purple-600'),
+                hasStriped: this.state.progressBar.classList.contains('progress-bar-striped'),
+                hasAnimated: this.state.progressBar.classList.contains('progress-bar-animated')
+            });
             
             // Force Upload Note Visibility
             this.state.uploadNote.classList.remove('hidden');
